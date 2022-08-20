@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorator="layout/root_layout"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Arı</title>
+
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .row {
+            margin-left: -5px;
+            margin-right: -5px;
+        }
+
+        .table-border{
+            border:1px solid black;
+        }
+
+        /* Clearfix (clear floats) */
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 12px 20px;
+            box-sizing: border-box;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            font-size: 16px;
+            resize: none;
+        }
+
+    .div1{
+        padding: 20px;
+    }
+
+
+    </style>
+
+</head>
+<body>
+<div class="div1">
+<h1>Nar Sistem Öneri Platformu</h1>
+<br>
+    <div sec:authorize="hasAuthority('ROLE_ADMIN')">
+    Hoşgeldin: <div sec:authentication="name"></div>
+    </div>
+    <a href="#" th:href="@{/login}" class="btn btn-dark">Yönetici Girişi</a>
+
+    <br>
+<br>
+<div class="form-group">
+    <form action="#" th:action="@{/save}" th:object="${ticket}" method="POST">
+        <input type="hidden" th:field="*{id}"/>
+
+        <textarea th:field="*{ticketText}"
+        />
+        <button type="submit" class="btn btn-primary"  name="buton">Gönder</button>
+</div>
+</div>
+
+<br>
+<div class="row">
+    <div class="table-responsive col-md-6">
+        <table class="table table-striped" id="myTable">
+            <thead>
+            <tr>
+                <th>
+                    Mesajlar
+                </th>
+                <th>
+                    Beğen
+                </th>
+                <th>
+                    Beğeniler
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="ticket : ${tickets}" >
+
+                <td th:text="${ticket.ticketText}"/>
+                <td>
+                    <a href="JavaScript:setTimeout(loadUrl,200)" class="begeniButonu btn btn-success" th:attr="data-ticket=${ticket.id}"
+                       >Beğen</a>
+
+                    <a sec:authorize="hasAuthority('ROLE_ADMIN')" href="JavaScript:setTimeout(loadUrl,200)" class="silmeButonu btn btn-danger"  th:attr="data-ticket=${ticket.id}"
+                    >Sil</a>
+
+                </td>
+                <td th:text="${#lists.size(ticket.likes)}"/>
+
+            </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<br>
+
+</form>
+</body>
+</html>
+
+<script th:inline="javascript">
+
+    var id;
+
+    function loadUrl(){
+        window.location.reload();
+    }
+
+    // Initialize the agent at application startup.
+    const fpPromise = import('https://openfpcdn.io/fingerprintjs/v3')
+        .then(FingerprintJS => FingerprintJS.load())
+
+    // Get the visitor identifier when you need it.
+    fpPromise
+        .then(fp => fp.get())
+        .then(result => {
+            // This is the visitor identifier:
+            id = result.visitorId;
+            console.log(id);
+        });
+
+    var ticket_id;
+    $(".begeniButonu").click(function (e) {
+        $.ajax({
+            type: "POST",
+            url: "/api/saveId",
+            data: {
+                id: id,
+                ticket_id: $(this).data('ticket')
+            },
+            error: function(){
+                alert('Bu iletiyi daha önce beğendiniz!');
+            }
+        });
+
+        return true;
+    });
+
+
+    $(".silmeButonu").click(function (e) {
+        $.ajax({
+            type: "POST",
+            url: "/api/deleteId",
+            data: {
+                ticket_id: $(this).data('ticket')
+            }
+        });
+
+        return true;
+    })
+
+//        <input type="text" th:field="*{ticketText}" placeholder="Mesajınız" class="form-control" id="exampleFormControlTextarea1" rows="3"/>
+
+    //"javascript:window.location.href=window.location.href"
+</script>
